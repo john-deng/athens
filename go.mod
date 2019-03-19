@@ -9,6 +9,7 @@ require (
 	github.com/DataDog/opencensus-go-exporter-datadog v0.0.0-20180917103902-e6c7f767dc57
 	github.com/aws/aws-sdk-go v1.15.24
 	github.com/bsm/redis-lock v8.0.0+incompatible
+	github.com/codegangsta/negroni v1.0.0 // indirect
 	github.com/fatih/color v1.7.0
 	github.com/globalsign/mgo v0.0.0-20180828104044-6f9f54af1356
 	github.com/go-playground/locales v0.12.1 // indirect

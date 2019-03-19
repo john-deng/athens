@@ -17,6 +17,16 @@ import (
 	"github.com/spf13/afero"
 )
 
+var replacer = map[string]string{
+	"cloud.google.com/go":  "github.com/googleapis/google-cloud-go",
+	"golang.org/x":  "github.com/golang",
+	"google.golang.org/api":  "github.com/googleapis/googleapis",
+	"google.golang.org/appengine":  "github.com/golang/appengine",
+	"google.golang.org/genproto":  "github.com/google/go-genproto",
+	"google.golang.org/grpc":  "github.com/grpc/grpc-go",
+	"go.etcd.io/etcd":  "github.com/etcd-io/etcd",
+}
+
 type goGetFetcher struct {
 	fs           afero.Fs
 	goBinaryName string
@@ -46,6 +56,26 @@ func NewGoGetFetcher(goBinaryName string, fs afero.Fs) (Fetcher, error) {
 	}, nil
 }
 
+func (g *goGetFetcher) replace(mod, prefix string) (uri string) {
+
+	res := replacer[prefix]
+	if res == "" {
+		if prefix == "" {
+			return mod
+		}
+		// remove last sep
+		n := strings.LastIndex(prefix, "/")
+		if n > 0 {
+			prefix = prefix[:n]
+		}
+		return g.replace(mod, prefix)
+	}
+
+	uri = strings.Replace(mod, prefix, res, -1)
+
+	return
+}
+
 // Fetch downloads the sources from the go binary and returns the corresponding
 // .info, .mod, and .zip files.
 func (g *goGetFetcher) Fetch(ctx context.Context, mod, ver string) (*storage.Version, error) {
@@ -71,7 +101,7 @@ func (g *goGetFetcher) Fetch(ctx context.Context, mod, ver string) (*storage.Ver
 		return nil, errors.E(op, err)
 	}
 
-	m, err := downloadModule(g.goBinaryName, g.fs, goPathRoot, modPath, mod, ver)
+	m, err := downloadModule(g.goBinaryName, g.fs, goPathRoot, modPath, g.replace(mod, mod), ver)
 	if err != nil {
 		ClearFiles(g.fs, goPathRoot)
 		return nil, errors.E(op, err)
@@ -127,7 +157,6 @@ func downloadModule(goBinaryName string, fs afero.Fs, gopath, repoRoot, module, 
 	const op errors.Op = "module.downloadModule"
 	uri := strings.TrimSuffix(module, "/")
 	fullURI := fmt.Sprintf("%s@%s", uri, version)
-
 	cmd := exec.Command(goBinaryName, "mod", "download", "-json", fullURI)
 	cmd.Env = PrepareEnv(gopath)
 	cmd.Dir = repoRoot
