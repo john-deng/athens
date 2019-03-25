@@ -44,6 +44,12 @@ type Config struct {
 	Storage          *StorageConfig
 }
 
+var ModMap map[string]string
+
+func GetModConfig()map[string]string{
+	return ModMap
+}
+
 // Load loads the config from a file.
 // If file is not present returns default config
 func Load(configFile string) (*Config, error) {

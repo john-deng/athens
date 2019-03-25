@@ -101,7 +101,9 @@ func (g *goGetFetcher) Fetch(ctx context.Context, mod, ver string) (*storage.Ver
 		return nil, errors.E(op, err)
 	}
 
-	m, err := downloadModule(g.goBinaryName, g.fs, goPathRoot, modPath, g.replace(mod, mod), ver)
+	var flag bool
+	mod,flag=replace(mod)
+	m, err := downloadModule(g.goBinaryName, g.fs, goPathRoot, modPath, mod, ver,flag)
 	if err != nil {
 		ClearFiles(g.fs, goPathRoot)
 		return nil, errors.E(op, err)
@@ -153,7 +155,7 @@ func Dummy(fs afero.Fs, repoRoot string) error {
 
 // given a filesystem, gopath, repository root, module and version, runs 'go mod download -json'
 // on module@version from the repoRoot with GOPATH=gopath, and returns a non-nil error if anything went wrong.
-func downloadModule(goBinaryName string, fs afero.Fs, gopath, repoRoot, module, version string) (goModule, error) {
+func downloadModule(goBinaryName string, fs afero.Fs, gopath, repoRoot, module, version string,convertFlag bool) (goModule, error) {
 	const op errors.Op = "module.downloadModule"
 	uri := strings.TrimSuffix(module, "/")
 	fullURI := fmt.Sprintf("%s@%s", uri, version)
@@ -166,6 +168,7 @@ func downloadModule(goBinaryName string, fs afero.Fs, gopath, repoRoot, module, 
 	cmd.Stderr = stderr
 	err := cmd.Run()
 	if err != nil {
+		fmt.Fprintf(os.Stderr,"cmd err:",err," fullURI:",fullURI)
 		err = fmt.Errorf("%v: %s", err, stderr)
 		// github quota exceeded
 		if isLimitHit(err.Error()) {
@@ -180,6 +183,12 @@ func downloadModule(goBinaryName string, fs afero.Fs, gopath, repoRoot, module, 
 	}
 	if m.Error != "" {
 		return goModule{}, errors.E(op, m.Error)
+	}
+
+	if convertFlag{
+		m=convert(m)
+	}else{
+		m=convertReplace(m)
 	}
 
 	return m, nil
