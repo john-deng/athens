@@ -21,7 +21,7 @@ import (
 var (
 	configFile = flag.String("config_file", "", "The path to the config file")
 	version    = flag.Bool("version", false, "Print version information and exit")
-	modFile = flag.String("mod_file", "./mod_file", "The path to the mod file")
+	replaceFile = flag.String("replace_file", "./replace.cfg", "The path to the mod file")
 )
 
 func main() {
@@ -44,11 +44,11 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	}
-	_,err=os.Stat(*modFile)
+	_,err=os.Stat(*replaceFile)
 	if err == nil{
-		//bs, err := ioutil.ReadFile(*modMap)
-		f, err := os.Open(*modFile)
+		f, err := os.Open(*replaceFile)
 		if err == nil {
+			fmt.Println("load mod convert file")
 			config.ModMap=make(map[string]string)
 			buf := bufio.NewReader(f)
 			for {
