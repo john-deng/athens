@@ -41,7 +41,7 @@ func main() {
 		log.Fatal(err)
 	}
 
-	config.ModMap=conf.Replacer
+	config.ModMap = conf.Replacer
 	srv := &http.Server{
 		Addr:    conf.Port,
 		Handler: handler,

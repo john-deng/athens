@@ -18,13 +18,13 @@ import (
 )
 
 var replacer = map[string]string{
-	"cloud.google.com/go":  "github.com/googleapis/google-cloud-go",
-	"golang.org/x":  "github.com/golang",
-	"google.golang.org/api":  "github.com/googleapis/googleapis",
-	"google.golang.org/appengine":  "github.com/golang/appengine",
+	"cloud.google.com/go":         "github.com/googleapis/google-cloud-go",
+	"golang.org/x":                "github.com/golang",
+	"google.golang.org/api":       "github.com/googleapis/googleapis",
+	"google.golang.org/appengine": "github.com/golang/appengine",
 	"google.golang.org/genproto":  "github.com/google/go-genproto",
-	"google.golang.org/grpc":  "github.com/grpc/grpc-go",
-	"go.etcd.io/etcd":  "github.com/etcd-io/etcd",
+	"google.golang.org/grpc":      "github.com/grpc/grpc-go",
+	"go.etcd.io/etcd":             "github.com/etcd-io/etcd",
 }
 
 type goGetFetcher struct {
@@ -102,8 +102,8 @@ func (g *goGetFetcher) Fetch(ctx context.Context, mod, ver string) (*storage.Ver
 	}
 
 	var flag bool
-	mod,flag=replace(mod)
-	m, err := downloadModule(g.goBinaryName, g.fs, goPathRoot, modPath, mod, ver,flag)
+	mod, flag = replace(mod)
+	m, err := downloadModule(g.goBinaryName, g.fs, goPathRoot, modPath, mod, ver, flag)
 	if err != nil {
 		ClearFiles(g.fs, goPathRoot)
 		return nil, errors.E(op, err)
@@ -155,7 +155,7 @@ func Dummy(fs afero.Fs, repoRoot string) error {
 
 // given a filesystem, gopath, repository root, module and version, runs 'go mod download -json'
 // on module@version from the repoRoot with GOPATH=gopath, and returns a non-nil error if anything went wrong.
-func downloadModule(goBinaryName string, fs afero.Fs, gopath, repoRoot, module, version string,convertFlag bool) (goModule, error) {
+func downloadModule(goBinaryName string, fs afero.Fs, gopath, repoRoot, module, version string, convertFlag bool) (goModule, error) {
 	const op errors.Op = "module.downloadModule"
 	uri := strings.TrimSuffix(module, "/")
 	fullURI := fmt.Sprintf("%s@%s", uri, version)
@@ -168,7 +168,7 @@ func downloadModule(goBinaryName string, fs afero.Fs, gopath, repoRoot, module, 
 	cmd.Stderr = stderr
 	err := cmd.Run()
 	if err != nil {
-		fmt.Fprintf(os.Stderr,"cmd err:",err," fullURI:",fullURI)
+		fmt.Fprintf(os.Stderr, "cmd err:", err, " fullURI:", fullURI)
 		err = fmt.Errorf("%v: %s", err, stderr)
 		// github quota exceeded
 		if isLimitHit(err.Error()) {
@@ -185,10 +185,10 @@ func downloadModule(goBinaryName string, fs afero.Fs, gopath, repoRoot, module, 
 		return goModule{}, errors.E(op, m.Error)
 	}
 
-	if convertFlag{
-		m=convert(m)
-	}else{
-		m=convertReplace(m)
+	if convertFlag {
+		m = convert(m)
+	} else {
+		m = convertReplace(m)
 	}
 
 	return m, nil

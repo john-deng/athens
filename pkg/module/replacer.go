@@ -29,8 +29,7 @@ func getDirList(dirpath string) ([]string, error) {
 	return dir_list, dir_err
 }
 
-
-func contextReplace(fileName,src,dst string)error{
+func contextReplace(fileName, src, dst string) error {
 	in, err := os.Open(fileName)
 	if err != nil {
 		fmt.Println("open file fail:", err)
@@ -63,7 +62,7 @@ func contextReplace(fileName,src,dst string)error{
 		}
 	}
 	//os.Remove(fileName)
-	err=os.Rename(fileName+".bak",fileName)
+	err = os.Rename(fileName+".bak", fileName)
 	if err != nil {
 		fmt.Println("rename err:", err)
 		return err
@@ -71,27 +70,27 @@ func contextReplace(fileName,src,dst string)error{
 	return nil
 }
 
-func convert(m goModule)goModule{
-	if config.GetModConfig() == nil{
-		fmt.Println("config.GetModConfig():",config.GetModConfig())
+func convert(m goModule) goModule {
+	if config.GetModConfig() == nil {
+		fmt.Println("config.GetModConfig():", config.GetModConfig())
 		return m
 	}
 
-	modMap:=config.GetModConfig()
+	modMap := config.GetModConfig()
 
-	for key,value:=range modMap{
-		if strings.HasPrefix(m.Path, value){
+	for key, value := range modMap {
+		if strings.HasPrefix(m.Path, value) {
 
 			cmd := exec.Command("unzip", m.Zip)
-			n:=strings.LastIndex(m.Zip,"/")
-			if n<=0{
+			n := strings.LastIndex(m.Zip, "/")
+			if n <= 0 {
 				fmt.Println("path is invalid:")
 				return m
 			}
-			prefix:=m.Zip[:n+1]  //save dir
+			prefix := m.Zip[:n+1] //save dir
 			stdout := &bytes.Buffer{}
 			stderr := &bytes.Buffer{}
-			cmd.Dir=prefix
+			cmd.Dir = prefix
 			cmd.Stdout = stdout
 			cmd.Stderr = stderr
 			err := cmd.Run()
@@ -101,39 +100,39 @@ func convert(m goModule)goModule{
 			}
 			os.Remove(m.Zip)
 
-			srcDir:=prefix+value+"@"+m.Version
-			desDir:=prefix+key+"@"+m.Version
+			srcDir := prefix + value + "@" + m.Version
+			desDir := prefix + key + "@" + m.Version
 
 			//list,err:=getDirList(m.Zip[:n+1])
 			//if err != nil {
 			//	return m
 			//}
 
-			err=CopyDir(srcDir, desDir)
+			err = CopyDir(srcDir, desDir)
 			if err != nil {
 				fmt.Println("copy dir err:", err)
 				return m
 			}
 
-			cmd = exec.Command("zip", "-rD",m.Zip[n+1:],key+"@"+m.Version)
+			cmd = exec.Command("zip", "-rD", m.Zip[n+1:], key+"@"+m.Version)
 
 			stdout = &bytes.Buffer{}
 			stderr = &bytes.Buffer{}
-			cmd.Dir=prefix
+			cmd.Dir = prefix
 			cmd.Stdout = stdout
 			cmd.Stderr = stderr
 			err = cmd.Run()
 			if err != nil {
 				stdout.String()
-				fmt.Println("cmd run err:", err," out:",stdout.String(),"stderr:",stderr.String())
+				fmt.Println("cmd run err:", err, " out:", stdout.String(), "stderr:", stderr.String())
 				return m
 			}
-			err=contextReplace(m.GoMod,value,key)
+			err = contextReplace(m.GoMod, value, key)
 			if err != nil {
 				fmt.Println("contextReplace err:", err)
 				return m
 			}
-			m.Path=strings.Replace(m.Path, value, key, -1)//todo
+			m.Path = strings.Replace(m.Path, value, key, -1) //todo
 
 			break
 		}
@@ -141,15 +140,15 @@ func convert(m goModule)goModule{
 	return m
 }
 
-func convertReplace(m goModule)goModule{
-	if config.GetModConfig() == nil{
+func convertReplace(m goModule) goModule {
+	if config.GetModConfig() == nil {
 		return m
 	}
 
-	modMap:=config.GetModConfig()
-	for key,value:=range modMap{
-		if strings.HasPrefix(m.Path, value){
-			err:=contextReplace(m.GoMod,key,value)
+	modMap := config.GetModConfig()
+	for key, value := range modMap {
+		if strings.HasPrefix(m.Path, value) {
+			err := contextReplace(m.GoMod, key, value)
 			if err != nil {
 				fmt.Println("contextReplace err:", err)
 				return m
@@ -159,7 +158,6 @@ func convertReplace(m goModule)goModule{
 	}
 	return m
 }
-
 
 func CopyDir(srcPath string, destPath string) error {
 	//检测目录正确性
@@ -172,7 +170,7 @@ func CopyDir(srcPath string, destPath string) error {
 		}
 	}
 	if destInfo, err := os.Stat(destPath); err != nil {
-		os.MkdirAll(destPath,0777)
+		os.MkdirAll(destPath, 0777)
 	} else {
 		if !destInfo.IsDir() {
 			return fmt.Errorf("destInfo is not dir")
@@ -243,25 +241,22 @@ func pathExists(path string) (bool, error) {
 	return false, err
 }
 
-
-func replace(mod string) (string,bool) {
-	if config.GetModConfig() == nil{
-		return mod,false
+func replace(mod string) (string, bool) {
+	if config.GetModConfig() == nil {
+		return mod, false
 	}
 
-	modMap:=config.GetModConfig()
-	res,ok := modMap[mod]
-	if !ok{
-		for key,value:=range modMap{
-			if strings.HasPrefix(mod, key) && strings.HasPrefix(mod, key+"/"){
-				mod=strings.Replace(mod, key, value, -1)
-				return mod,true
+	modMap := config.GetModConfig()
+	res, ok := modMap[mod]
+	if !ok {
+		for key, value := range modMap {
+			if strings.HasPrefix(mod, key) && strings.HasPrefix(mod, key+"/") {
+				mod = strings.Replace(mod, key, value, -1)
+				return mod, true
 			}
 		}
-		return mod,false
+		return mod, false
 	}
 
-	return res,true
+	return res, true
 }
-
-

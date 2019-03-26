@@ -42,12 +42,12 @@ type Config struct {
 	SingleFlightType string `envconfig:"ATHENS_SINGLE_FLIGHT_TYPE"`
 	SingleFlight     *SingleFlight
 	Storage          *StorageConfig
-	Replacer		map[string]string
+	Replacer         map[string]string
 }
 
 var ModMap map[string]string
 
-func GetModConfig()map[string]string{
+func GetModConfig() map[string]string {
 	return ModMap
 }
 
