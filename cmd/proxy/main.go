@@ -1,16 +1,13 @@
 package main
 
 import (
-	"bufio"
 	"context"
 	"flag"
 	"fmt"
-	"io"
 	"log"
 	"net/http"
 	"os"
 	"os/signal"
-	"strings"
 	"time"
 
 	"github.com/gomods/athens/cmd/proxy/actions"
@@ -21,7 +18,6 @@ import (
 var (
 	configFile = flag.String("config_file", "", "The path to the config file")
 	version    = flag.Bool("version", false, "Print version information and exit")
-	replaceFile = flag.String("replace_file", "./replace.cfg", "The path to the mod file")
 )
 
 func main() {
@@ -44,26 +40,8 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	}
-	_,err=os.Stat(*replaceFile)
-	if err == nil{
-		f, err := os.Open(*replaceFile)
-		if err == nil {
-			fmt.Println("load mod convert file")
-			config.ModMap=make(map[string]string)
-			buf := bufio.NewReader(f)
-			for {
-				line, err := buf.ReadString('\n')
-				if err != nil {
-					if err == io.EOF {
-						break
-					}
-				}
-				line = strings.TrimSpace(line)
-				str:=strings.SplitN(line,"######",2)
-				config.ModMap[str[0]]=str[1]
-			}
-		}
-	}
+
+	config.ModMap=conf.Replacer
 	srv := &http.Server{
 		Addr:    conf.Port,
 		Handler: handler,

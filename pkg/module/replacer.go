@@ -73,6 +73,7 @@ func contextReplace(fileName,src,dst string)error{
 
 func convert(m goModule)goModule{
 	if config.GetModConfig() == nil{
+		fmt.Println("config.GetModConfig():",config.GetModConfig())
 		return m
 	}
 
