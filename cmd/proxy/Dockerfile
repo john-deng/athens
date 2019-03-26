@@ -19,7 +19,9 @@ ENV GO111MODULE=on
 COPY --from=builder /bin/athens-proxy /bin/athens-proxy
 COPY --from=builder /go/src/github.com/gomods/athens/config.dev.toml /config/config.toml
 COPY --from=builder /usr/local/go/bin/go /bin/go
-
+COPY --from=builder /go/src/github.com/gomods/athens/cmd/proxy/replace.cfg /config/replace.cfg
+COPY  /usr/bin/unzip /bin/unzip
+COPY  /usr/bin/zip /bin/zip
 RUN apk add --update bzr git mercurial openssh-client subversion procps fossil && \
 	mkdir -p /usr/local/go
 
@@ -27,4 +29,4 @@ ENV GO_ENV=production
 
 EXPOSE 3000
 
-CMD ["athens-proxy", "-config_file=/config/config.toml"]
+CMD ["athens-proxy", "-config_file=/config/config.toml", "-replace_file=/config/replace.cfg"]
